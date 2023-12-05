@@ -252,7 +252,7 @@ def test(opt):
                 shuffle=False,
                 num_workers=int(opt.workers),
                 collate_fn=AlignCollate_evaluation, pin_memory=True)
-            _, accuracy_by_best_model, norm_ED, _, _, _, _, _ = validation(
+            _, accuracy_by_best_model, norm_ED, _, confidence_score, _, _, _ = validation(
                 model, criterion, evaluation_loader, converter, opt)
             log.write(eval_data_log)
             print(f'Accuracy: {accuracy_by_best_model:0.8f}')
@@ -261,6 +261,17 @@ def test(opt):
             log.write(f'Accuracy: {accuracy_by_best_model:0.8f}\n')
             log.write(f'Norm ED: {norm_ED:0.8f}\n')
             log.close()
+
+            log_confidence = open(f'./result/{opt.exp_name}/log_confidence_scores.txt', 'a')
+            
+            words = []
+            for _, labels in evaluation_loader:
+                for label in labels:
+                    words.append(label)
+            
+            for word, confidence in zip(words, confidence_score):
+                log_confidence.write(f'{word} {confidence}\n')
+            log_confidence.close()
 
 
 if __name__ == '__main__':
