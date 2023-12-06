@@ -271,7 +271,8 @@ def test(opt):
             log_confidence = open(f'./result/{opt.exp_name}/log_confidence_scores.txt', 'a')
             with open(f'{opt.eval_data_gt}', 'r') as gt_file:
                 gt_lines = gt_file.readlines()
-                gt_lines = [i.strip().split(' ')[0] for i in gt_lines]
+                image_names = [i.strip().split(' ',1)[0] for i in gt_lines]
+                words = [i.strip().split(' ',1)[1] for i in gt_lines]
             
             #words = []
             #for _, labels in evaluation_loader:
@@ -279,8 +280,8 @@ def test(opt):
             #        words.append(label)
             print(f'Confidence scores: {len(confidence_score)}')
             print(f'gt_lines: {len(gt_lines)}')
-            for image_name, confidence in zip(gt_lines, confidence_score):
-                log_confidence.write(f'{image_name} {confidence}\n')
+            for image_name, word, confidence in zip(image_names, words, confidence_score):
+                log_confidence.write(f'{image_name} {word} {confidence}\n')
             log_confidence.close()
 
 
