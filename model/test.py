@@ -87,6 +87,7 @@ def validation(model, criterion, evaluation_loader, converter, opt):
     length_of_data = 0
     infer_time = 0
     valid_loss_avg = Averager()
+    confidence_score_list = []
 
     # Export predictions only when testing
     # because dir `/result/{opt.exp_name}` is created only during testing,
@@ -106,7 +107,6 @@ def validation(model, criterion, evaluation_loader, converter, opt):
         text_for_pred = torch.LongTensor(batch_size, opt.batch_max_length + 1).fill_(0).to(device)
 
         text_for_loss, length_for_loss = converter.encode(labels, batch_max_length=opt.batch_max_length)
-
         start_time = time.time()
         if 'CTC' in opt.Prediction:
             preds = model(image, text_for_pred)
@@ -147,7 +147,11 @@ def validation(model, criterion, evaluation_loader, converter, opt):
         # calculate accuracy & confidence score
         preds_prob = F.softmax(preds, dim=2)
         preds_max_prob, _ = preds_prob.max(dim=2)
-        confidence_score_list = []
+
+        #Reset confidence_score_list if train.py calls validation()
+        if not hasattr(opt, 'eval_data_gt'):
+                confidence_score_list = []
+        
         for gt, pred, pred_max_prob in zip(labels, preds_str, preds_max_prob):
             if 'Attn' in opt.Prediction:
                 gt = gt[:gt.find('[s]')]
@@ -247,14 +251,16 @@ def test(opt):
             log = open(f'./result/{opt.exp_name}/log_evaluation.txt', 'a')
             AlignCollate_evaluation = AlignCollate(imgH=opt.imgH, imgW=opt.imgW, keep_ratio_with_pad=opt.PAD)
             eval_data, eval_data_log = hierarchical_dataset(root=opt.eval_data, opt=opt)
+            print(f'eval_data_log: {eval_data_log}')
             evaluation_loader = torch.utils.data.DataLoader(
                 eval_data, batch_size=opt.batch_size,
                 shuffle=False,
                 num_workers=int(opt.workers),
                 collate_fn=AlignCollate_evaluation, pin_memory=True)
-            _, accuracy_by_best_model, norm_ED, _, _, _, _, _ = validation(
+            _, accuracy_by_best_model, norm_ED, _, confidence_score, _, _, _ = validation(
                 model, criterion, evaluation_loader, converter, opt)
             log.write(eval_data_log)
+            print(f'evaluation_loader: {evaluation_loader}')
             print(f'Accuracy: {accuracy_by_best_model:0.8f}')
             print(f'Norm ED: {norm_ED:0.8f}')
             
@@ -262,10 +268,27 @@ def test(opt):
             log.write(f'Norm ED: {norm_ED:0.8f}\n')
             log.close()
 
+            log_confidence = open(f'./result/{opt.exp_name}/log_confidence_scores.txt', 'a')
+            with open(f'{opt.eval_data_gt}', 'r') as gt_file:
+                gt_lines = gt_file.readlines()
+                image_names = [i.strip().split(' ',1)[0] for i in gt_lines]
+                words = [i.strip().split(' ',1)[1] for i in gt_lines]
+            
+            #words = []
+            #for _, labels in evaluation_loader:
+            #    for label in labels:
+            #        words.append(label)
+            print(f'Confidence scores: {len(confidence_score)}')
+            print(f'gt_lines: {len(gt_lines)}')
+            for image_name, word, confidence in zip(image_names, words, confidence_score):
+                log_confidence.write(f'{image_name} {word} {confidence}\n')
+            log_confidence.close()
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--eval_data', required=True, help='path to evaluation dataset')
+    parser.add_argument('--eval_data_gt', required=True, help='path to ground truth file of evaluation dataset')
     parser.add_argument('--benchmark_all_eval', action='store_true', help='evaluate 10 benchmark evaluation datasets')
     parser.add_argument('--workers', type=int, help='number of data loading workers', default=0)
     parser.add_argument('--batch_size', type=int, default=192, help='input batch size')
