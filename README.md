@@ -42,16 +42,16 @@ Pre-trained STR benchmark models can be downloaded from [here](https://github.co
 
 ## Demo on real-world word-level images
 
-* Download the `AttentionHTR-General-sensitive.pth` model and place it into `/model/saved_models`.
-* Directory `/dataset-demo` contains ten images of text written specifically for this demo. Go to `/model` and create an LMDB dataset from them with `python3 create_lmdb_dataset.py --inputPath ../dataset-demo/ --gtFile ../dataset-demo/gt.txt --outputPath result/dataset-demo/`. Note that under Windows you may need to tune the `map_size` parameter manually for the `lmdb.open()` function.
-* Obtain predictions with `python3 test.py --eval_data result/dataset-demo --Transformation TPS --FeatureExtraction ResNet --SequenceModeling BiLSTM --Prediction Attn --saved_model saved_models/AttentionHTR-General-sensitive.pth --sensitive`. The last two rows in the terminal should be 
+* Download the `AttentionHTR-General-sensitive.pth` model and place it into `/attentionhtr/saved_models`.
+* Directory `/dataset-demo` contains ten images of text written specifically for this demo. Go to `/attentionhtr` and create an LMDB dataset from them with `python3 create_lmdb_dataset.py --inputPath ../dataset-demo/ --gtFile ../dataset-demo/gt.txt --outputPath result/dataset-demo/`. Note that under Windows you may need to tune the `map_size` parameter manually for the `lmdb.open()` function.
+* Obtain predictions with `python3 test.py --eval_data result/dataset-demo --Transformation TPS --FeatureExtraction ResNet --SequenceModeling BiLSTM --Prediction Attn --saved_model saved_models/AttentionHTR-General-sensitive.pth --sensitive`. The last two rows in the terminal should be
 
     ````
     Accuracy: 90.00000000
     Norm ED: 0.04000000
     ````
 
-* Inspect predictions in `/model/result/AttentionHTR-General-sensitive.pth/log_predictions_dataset-demo.txt`. Columns: batch number, ground truth string, predicted string, match (0/1), running accuracy. 
+* Inspect predictions in `/attentionhtr/result/AttentionHTR-General-sensitive.pth/log_predictions_dataset-demo.txt`. Columns: batch number, ground truth string, predicted string, match (0/1), running accuracy.
 
 Prediction results:
 
@@ -77,7 +77,7 @@ When using the PyTorch implementation of the STR benchmark model [1], images nee
 
 ### Predictions and fine-tuning 
 
-The pre-trained models can be used for predictions or fine-tuning on additional datasets using an implementation in `/model`, which is a modified version of the [official PyTorch implementation of the STR benchmark](https://github.com/clovaai/deep-text-recognition-benchmark) [1]. Use `test.py` for predictions and `train.py` for fine-tuning. In both cases use the following arguments:
+The pre-trained models can be used for predictions or fine-tuning on additional datasets using an implementation in `/attentionhtr`, which is a modified version of the [official PyTorch implementation of the STR benchmark](https://github.com/clovaai/deep-text-recognition-benchmark) [1]. Use `test.py` for predictions and `train.py` for fine-tuning. In both cases use the following arguments:
 
 * `--Transformation TPS --FeatureExtraction ResNet --SequenceModeling BiLSTM --Prediction Attn` to define architecture.
 * `--saved_model` to provide a path to a pre-trained model. In case of `train.py` it will be used as a starting point in fine-tuning and in the case of `test.py` it will be used for predictions.
@@ -95,7 +95,7 @@ Specifically for predicting use:
 
 Note that `test.py` outputs its logs and a copy of the evaluated model into `/result`.
 
-All other arguments are described inside the scripts. Original instructions for using the scripts in `/model` are available [here](https://github.com/clovaai/deep-text-recognition-benchmark).
+All other arguments are described inside the scripts. Original instructions for using the scripts in `/attentionhtr` are available [here](https://github.com/clovaai/deep-text-recognition-benchmark).
 
 For example, to fine-tune one of our case-sensitive models on an additional dataset:
 
