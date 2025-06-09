@@ -14,11 +14,16 @@ import torch.optim as optim
 import torch.utils.data
 import numpy as np
 
-from utils import CTCLabelConverter, CTCLabelConverterForBaiduWarpctc, AttnLabelConverter, Averager
-from dataset import hierarchical_dataset, AlignCollate, Batch_Balanced_Dataset
-from model import Model
-from test import validation
-from pytorchtools import EarlyStopping
+from .utils import (
+    CTCLabelConverter,
+    CTCLabelConverterForBaiduWarpctc,
+    AttnLabelConverter,
+    Averager,
+)
+from .dataset import hierarchical_dataset, AlignCollate, Batch_Balanced_Dataset
+from .model import Model
+from .test import validation
+from .pytorchtools import EarlyStopping
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
